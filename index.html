@@ -1,303 +1,82 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Submit a Request</title>
-    <link rel="icon" type="image/png" href="https://support.discord.com/hc/user_images/PRywUXcqg0v5DD6s7C3LyQ.jpeg">
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background: url('https://images.unsplash.com/photo-1561948959-508f22598635') no-repeat center center fixed;
-            background-size: cover;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-
-        .container {
-            max-width: 800px;
-            width: 100%;
-            background: rgba(255, 255, 255, 0.9);
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-        }
-
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 2px solid #ddd;
-            padding-bottom: 20px;
-            margin-bottom: 30px;
-        }
-
-        .header img {
-            height: 50px;
-            width: auto;
-        }
-
-        .nav a {
-            margin-left: 15px;
-            text-decoration: none;
-            color: #5865F2;
-            font-weight: bold;
-        }
-
-        .nav a:hover {
-            text-decoration: underline;
-        }
-
-        .dropdown {
-            position: relative;
-            display: inline-block;
-        }
-
-        .dropdown-content {
-            display: none;
-            position: absolute;
-            background-color: white;
-            min-width: 160px;
-            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-            z-index: 1;
-        }
-
-        .dropdown-content a {
-            color: black;
-            padding: 10px;
-            display: block;
-            text-decoration: none;
-        }
-
-        .dropdown-content a:hover {
-            background-color: #f1f1f1;
-        }
-
-        .dropdown:hover .dropdown-content {
-            display: block;
-        }
-
-        h2 {
-            font-size: 26px;
-            color: #23272a;
-            margin-bottom: 20px;
-        }
-
-        label {
-            display: block;
-            font-weight: bold;
-            margin-top: 10px;
-        }
-
-        select, input, textarea, button {
-            width: 100%;
-            padding: 12px;
-            margin-top: 8px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            font-size: 16px;
-        }
-
-        button {
-            background-color: #5865F2;
-            color: white;
-            font-size: 18px;
-            cursor: pointer;
-            border: none;
-            margin-top: 20px;
-            padding: 15px;
-            position: relative;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            transition: background-color 0.3s ease;
-        }
-
-        button:hover {
-            background-color: #4752c4;
-        }
-
-        button:disabled {
-            background-color: #d3d3d3;
-            cursor: not-allowed;
-        }
-
-        button .spinner {
-            position: absolute;
-            width: 20px;
-            height: 20px;
-            border: 3px solid #fff;
-            border-top: 3px solid transparent;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            display: none;
-        }
-
-        button.loading .spinner {
-            display: block;
-        }
-
-        @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-            100% {
-                transform: rotate(360deg);
-            }
-        }
-
-        .file-input-wrapper {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .file-input-wrapper input[type="file"] {
-            width: auto;
-        }
-
-        .file-input-wrapper label {
-            display: inline-block;
-            margin-right: 10px;
-        }
-
-        .help-text {
-            font-size: 14px;
-            color: #555;
-            margin-top: 10px;
-        }
-
-        /* Success message styling */
-        .success-message {
-            text-align: center;
-            margin-top: 20px;
-            padding: 10px;
-            background-color: #28a745;
-            color: white;
-            border-radius: 5px;
-            display: none;
-        }
-    </style>
-    <script>
-        const translations = {
-            "en": {
-                "submit_request": "Submit a request",
-                "help_with": "What can we help you with?",
-                "email": "Your email address",
-                "help_type": "How can we help?",
-                "referral_token": "Referral token",
-                "description": "Description",
-                "attachments": "Attachments (optional)",
-                "submit": "Submit"
-            },
-            "es": {
-                "submit_request": "Enviar una solicitud",
-                "help_with": "¿En qué podemos ayudarte?",
-                "email": "Tu dirección de correo electrónico",
-                "help_type": "¿Cómo podemos ayudar?",
-                "referral_token": "Token de referencia",
-                "description": "Descripción",
-                "attachments": "Archivos adjuntos (opcional)",
-                "submit": "Enviar"
-            },
-            "fr": {
-                "submit_request": "Soumettre une demande",
-                "help_with": "Comment pouvons-nous vous aider?",
-                "email": "Votre adresse e-mail",
-                "help_type": "Comment pouvons-nous aider?",
-                "referral_token": "Jeton de référence",
-                "description": "Description",
-                "attachments": "Pièces jointes (facultatif)",
-                "submit": "Soumettre"
-            }
-        };
-
-        function changeLanguage(lang) {
-            document.getElementById("submit_request").innerText = translations[lang].submit_request;
-            document.getElementById("help_with").innerText = translations[lang].help_with;
-            document.getElementById("email_label").innerText = translations[lang].email;
-            document.getElementById("referral_token").innerText = translations[lang].referral_token;
-            document.getElementById("description_label").innerText = translations[lang].description;
-            document.getElementById("attachments_label").innerText = translations[lang].attachments;
-            document.getElementById("submit_button").innerText = translations[lang].submit;
-        }
-
-        function handleSubmit() {
-            const submitButton = document.getElementById("submit_button");
-            submitButton.disabled = true;
-            submitButton.classList.add("loading");
-            submitButton.innerText = "Submitting...";
-
-            // Simulate a delay for the form submission (e.g., AJAX request)
-            setTimeout(function () {
-                document.getElementById("success-message").style.display = "block"; // Show success message
-                setTimeout(function () {
-                    location.reload(); // Reload the page after 3 seconds
-                }, 3000); // Wait for 3 seconds before reloading
-            }, 3000);
-        }
-    </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Drive System — Login</title>
+  <link rel="stylesheet" href="css/style.css">
 </head>
-
-<body>
-    <div class="container">
-        <div class="header">
-            <img src="https://1000logos.net/wp-content/uploads/2021/06/Discord-logo.png" alt="Discord Logo">
-            <div class="nav">
-                <a href="https://support.discord.com/hc/en-us/articles/213490807-Where-can-I-submit-Feature-Requests-Feedback-and-Suggestions">Feedback</a>
-                <div class="dropdown">
-                    <a href="#">English (US) ▼</a>
-                    <div class="dropdown-content">
-                        <a href="#" onclick="changeLanguage('en')">English (US)</a>
-                        <a href="#" onclick="changeLanguage('es')">Español</a>
-                        <a href="#" onclick="changeLanguage('fr')">Français</a>
-                    </div>
-                </div>
-                <a href="https://support.discord.com/hc/en-us/requests/new">Submit a request</a>
-                <a href="https://discord.com/login">Sign in</a>
-            </div>
-        </div>
-
-        <h2 id="submit_request">Submit a request</h2>
-
-        <form action="#" method="post" onsubmit="handleSubmit(); return false;">
-            <label id="help_with" for="request-type">What can we help you with?</label>
-            <select id="request-type" name="request-type">
-                <option value="appeals">Appeals & Age Update Requests</option>
-                <option value="account">Hacked Account</option>
-                <option value="billing">Bug Reporting</option>
-            </select>
-            <label for="help-type">How can we help?</label>
-            <select id="help-type" name="help-type">
-                <option value="ban-appeal">Bug Reports & Accidentally Reported Update Request</option>
-                <option value="age-update">Appeal an Action Taken on My Channel</option>
-                <option value="update-age">Update My Age Information</option>
-            </select>
-            <label id="email_label" for="email">Your email address</label>
-            <input type="email" id="email" name="email" required>
-            <label id="referral_token" for="subject">Referral token</label>
-            <input type="text" id="subject" name="subject" required>
-            <label id="description_label" for="description">Description</label>
-            <textarea id="description" name="description" rows="4" required></textarea>
-            <label id="attachments_label" for="attachment">Attachments (optional)</label>
-            <div class="file-input-wrapper">
-                <input type="file" id="attachment" name="attachment">
-                <span class="help-text">You can upload images or documents to help explain your request.</span>
-            </div>
-            <button id="submit_button" type="submit">Submit
-                <span class="spinner"></span>
-            </button>
-        </form>
-
-        <!-- Success message -->
-        <div class="success-message" id="success-message">Your request has been submitted successfully!</div>
+<body class="auth-page">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="logo-icon">🚗</div>
+      <h1>Smart Drive System</h1>
+      <p>Driving School Management Portal</p>
     </div>
-</body>
 
+    <form id="loginForm" novalidate>
+      <div class="form-group">
+        <label for="email">Email Address</label>
+        <input type="email" id="email" class="form-control" placeholder="you@example.com" required>
+        <div class="form-error" id="email-error"></div>
+      </div>
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" class="form-control" placeholder="••••••••" required>
+        <div class="form-error" id="password-error"></div>
+      </div>
+      <div class="form-error" id="login-error" style="margin-bottom:10px;text-align:center;font-size:13px;"></div>
+      <button type="submit" class="btn btn-primary btn-block">Sign In</button>
+    </form>
+
+    <div class="auth-footer-link" style="margin-top:14px;">
+      New student? <a href="register.html">Create an account</a>
+    </div>
+
+    <hr style="margin:22px 0;">
+    <div style="background:#f8fafc;border-radius:8px;padding:14px 16px;font-size:12px;color:#64748b;">
+      <strong style="color:#1e3a5f;display:block;margin-bottom:6px;">Demo Credentials</strong>
+      <div>Admin: admin@smartdrive.com / admin123</div>
+      <div>Instructor: instructor@smartdrive.com / pass123</div>
+      <div>Staff: staff@smartdrive.com / pass123</div>
+      <div>Student: student@smartdrive.com / pass123</div>
+    </div>
+  </div>
+
+  <script src="js/db.js"></script>
+  <script>
+    // Redirect if already logged in
+    (function () {
+      const user = SDS_AUTH.getCurrentUser();
+      if (user) redirectToDashboard(user.role);
+    })();
+
+    function redirectToDashboard(role) {
+      const map = { admin: 'admin.html', student: 'student.html', instructor: 'instructor.html', staff: 'staff.html' };
+      window.location.href = map[role] || 'index.html';
+    }
+
+    document.getElementById('loginForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      document.getElementById('email-error').textContent = '';
+      document.getElementById('password-error').textContent = '';
+      document.getElementById('login-error').textContent = '';
+
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      let valid = true;
+
+      if (!email) { document.getElementById('email-error').textContent = 'Email is required.'; valid = false; }
+      if (!password) { document.getElementById('password-error').textContent = 'Password is required.'; valid = false; }
+      if (!valid) return;
+
+      const user = SDS_AUTH.login(email, password);
+      if (user) {
+        redirectToDashboard(user.role);
+      } else {
+        document.getElementById('login-error').textContent = 'Invalid email or password. Please try again.';
+      }
+    });
+  </script>
+</body>
 </html>

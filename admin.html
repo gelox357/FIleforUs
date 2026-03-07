@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Drive System — Admin</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="sds-layout">
+  <!-- Sidebar -->
+  <aside class="sds-sidebar">
+    <div class="sds-sidebar-brand">
+      <h1>🚗 Smart Drive</h1>
+      <span class="role-badge">Admin</span>
+    </div>
+    <nav>
+      <a href="#" class="active" data-tab="overview"><span class="nav-icon">📊</span> Overview</a>
+      <a href="#" data-tab="users"><span class="nav-icon">👥</span> Manage Users</a>
+      <a href="#" data-tab="vehicles"><span class="nav-icon">🚘</span> Manage Vehicles</a>
+      <a href="#" data-tab="bookings"><span class="nav-icon">📅</span> Manage Bookings</a>
+      <a href="#" data-tab="payments"><span class="nav-icon">💳</span> Verify Payments</a>
+      <a href="#" data-tab="reports"><span class="nav-icon">📋</span> Reports</a>
+    </nav>
+    <div class="sds-sidebar-footer">
+      <div class="user-name" id="sidebar-name">—</div>
+      <div class="user-email" id="sidebar-email">—</div>
+      <button class="btn-logout" onclick="SDS_AUTH.logout()">Sign Out</button>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <div class="sds-main">
+    <div class="sds-topbar">
+      <h2 id="topbar-title">Overview</h2>
+      <div class="topbar-actions">
+        <span class="text-muted" id="topbar-date"></span>
+      </div>
+    </div>
+
+    <div class="sds-content">
+
+      <!-- ── OVERVIEW ── -->
+      <section id="tab-overview" class="tab-section">
+        <div class="stats-grid" id="stats-grid"></div>
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Recent Bookings</span>
+          </div>
+          <div class="table-wrapper" id="recent-bookings-table"></div>
+        </div>
+      </section>
+
+      <!-- ── USERS ── -->
+      <section id="tab-users" class="tab-section" style="display:none">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">All Users</span>
+            <button class="btn btn-primary btn-sm" onclick="openUserModal()">+ Add User</button>
+          </div>
+          <div class="form-row" style="margin-bottom:16px;">
+            <div class="form-group mb-0">
+              <input type="text" id="user-search" class="form-control" placeholder="Search by name or email…" oninput="renderUsers()">
+            </div>
+            <div class="form-group mb-0">
+              <select id="user-role-filter" class="form-control" onchange="renderUsers()">
+                <option value="">All Roles</option>
+                <option value="admin">Admin</option>
+                <option value="instructor">Instructor</option>
+                <option value="staff">Staff</option>
+                <option value="student">Student</option>
+              </select>
+            </div>
+          </div>
+          <div class="table-wrapper" id="users-table"></div>
+        </div>
+      </section>
+
+      <!-- ── VEHICLES ── -->
+      <section id="tab-vehicles" class="tab-section" style="display:none">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Vehicle Fleet</span>
+            <button class="btn btn-primary btn-sm" onclick="openVehicleModal()">+ Add Vehicle</button>
+          </div>
+          <div class="table-wrapper" id="vehicles-table"></div>
+        </div>
+      </section>
+
+      <!-- ── BOOKINGS ── -->
+      <section id="tab-bookings" class="tab-section" style="display:none">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">All Bookings</span>
+          </div>
+          <div class="form-group" style="max-width:220px;margin-bottom:14px;">
+            <select id="booking-status-filter" class="form-control" onchange="renderBookings()">
+              <option value="">All Statuses</option>
+              <option value="pending">Pending</option>
+              <option value="confirmed">Confirmed</option>
+              <option value="rescheduled">Rescheduled</option>
+              <option value="cancelled">Cancelled</option>
+              <option value="completed">Completed</option>
+            </select>
+          </div>
+          <div class="table-wrapper" id="bookings-table"></div>
+        </div>
+      </section>
+
+      <!-- ── PAYMENTS ── -->
+      <section id="tab-payments" class="tab-section" style="display:none">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Payment Verification</span>
+          </div>
+          <div class="form-group" style="max-width:220px;margin-bottom:14px;">
+            <select id="payment-status-filter" class="form-control" onchange="renderPayments()">
+              <option value="">All Statuses</option>
+              <option value="pending">Pending</option>
+              <option value="approved">Approved</option>
+              <option value="rejected">Rejected</option>
+            </select>
+          </div>
+          <div class="table-wrapper" id="payments-table"></div>
+        </div>
+      </section>
+
+      <!-- ── REPORTS ── -->
+      <section id="tab-reports" class="tab-section" style="display:none">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Generate Report</span>
+          </div>
+          <div class="form-group" style="max-width:280px;">
+            <label>Report Type</label>
+            <select id="report-type" class="form-control">
+              <option value="bookings">Bookings Summary</option>
+              <option value="payments">Payments Summary</option>
+              <option value="users">User Roster</option>
+              <option value="vehicles">Vehicle Fleet</option>
+              <option value="incidents">Incident Log</option>
+            </select>
+          </div>
+          <button class="btn btn-primary" onclick="generateReport()">Generate Report</button>
+        </div>
+        <div class="card" id="report-output" style="display:none">
+          <div class="card-header">
+            <span class="card-title" id="report-output-title">Report</span>
+            <span class="text-muted" id="report-output-date"></span>
+          </div>
+          <div id="report-output-body"></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">Saved Reports</span></div>
+          <div class="table-wrapper" id="saved-reports-table"></div>
+        </div>
+      </section>
+
+    </div><!-- sds-content -->
+  </div><!-- sds-main -->
+</div><!-- sds-layout -->
+
+<!-- User Modal -->
+<div class="modal-backdrop" id="user-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="user-modal-title">Add User</span>
+      <button class="modal-close" onclick="closeModal('user-modal')">&times;</button>
+    </div>
+    <form id="user-form" novalidate>
+      <input type="hidden" id="user-id">
+      <div class="form-group">
+        <label>Full Name</label>
+        <input type="text" id="user-name" class="form-control" required>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="user-email" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label>Phone</label>
+          <input type="tel" id="user-phone" class="form-control">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Role</label>
+          <select id="user-role" class="form-control">
+            <option value="student">Student</option>
+            <option value="instructor">Instructor</option>
+            <option value="staff">Staff</option>
+            <option value="admin">Admin</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Status</label>
+          <select id="user-status" class="form-control">
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group" id="user-password-group">
+        <label>Password</label>
+        <input type="password" id="user-password" class="form-control" placeholder="Leave blank to keep unchanged">
+      </div>
+      <div class="form-error" id="user-form-error"></div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('user-modal')">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Vehicle Modal -->
+<div class="modal-backdrop" id="vehicle-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="vehicle-modal-title">Add Vehicle</span>
+      <button class="modal-close" onclick="closeModal('vehicle-modal')">&times;</button>
+    </div>
+    <form id="vehicle-form" novalidate>
+      <input type="hidden" id="vehicle-id">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Plate Number</label>
+          <input type="text" id="vehicle-plate" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label>Color</label>
+          <input type="text" id="vehicle-color" class="form-control">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Model</label>
+          <input type="text" id="vehicle-model" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label>Year</label>
+          <input type="number" id="vehicle-year" class="form-control" min="1990" max="2030">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Status</label>
+        <select id="vehicle-status" class="form-control">
+          <option value="available">Available</option>
+          <option value="in-use">In Use</option>
+          <option value="maintenance">Maintenance</option>
+        </select>
+      </div>
+      <div class="form-error" id="vehicle-form-error"></div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('vehicle-modal')">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Booking Action Modal -->
+<div class="modal-backdrop" id="booking-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Update Booking</span>
+      <button class="modal-close" onclick="closeModal('booking-modal')">&times;</button>
+    </div>
+    <input type="hidden" id="booking-action-id">
+    <div class="form-group">
+      <label>New Status</label>
+      <select id="booking-action-status" class="form-control">
+        <option value="confirmed">Confirm</option>
+        <option value="rescheduled">Reschedule</option>
+        <option value="cancelled">Cancel</option>
+        <option value="completed">Mark Completed</option>
+      </select>
+    </div>
+    <div class="form-group" id="reschedule-fields" style="display:none">
+      <label>New Date</label>
+      <input type="date" id="booking-new-date" class="form-control">
+      <label style="margin-top:8px;">New Time</label>
+      <input type="time" id="booking-new-time" class="form-control">
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" onclick="closeModal('booking-modal')">Cancel</button>
+      <button type="button" class="btn btn-primary" onclick="saveBookingAction()">Update</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/db.js"></script>
+<script>
+  const currentUser = SDS_AUTH.requireAuth('admin');
+  if (!currentUser) throw new Error('Unauthorized');
+
+  document.getElementById('sidebar-name').textContent  = currentUser.name;
+  document.getElementById('sidebar-email').textContent = currentUser.email;
+  document.getElementById('topbar-date').textContent   = new Date().toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+
+  // ── Navigation ────────────────────────────────────
+  document.querySelectorAll('.sds-sidebar nav a[data-tab]').forEach(link => {
+    link.addEventListener('click', e => {
+      e.preventDefault();
+      const tab = link.dataset.tab;
+      document.querySelectorAll('.sds-sidebar nav a').forEach(a => a.classList.remove('active'));
+      link.classList.add('active');
+      document.querySelectorAll('.tab-section').forEach(s => s.style.display = 'none');
+      document.getElementById('tab-' + tab).style.display = '';
+      document.getElementById('topbar-title').textContent = link.textContent.trim();
+      refreshTab(tab);
+    });
+  });
+
+  function refreshTab(tab) {
+    if (tab === 'overview')  renderOverview();
+    if (tab === 'users')     renderUsers();
+    if (tab === 'vehicles')  renderVehicles();
+    if (tab === 'bookings')  renderBookings();
+    if (tab === 'payments')  renderPayments();
+    if (tab === 'reports')   renderSavedReports();
+  }
+
+  function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+  function openModal(id)  { document.getElementById(id).classList.add('open'); }
+
+  // ── Overview ──────────────────────────────────────
+  function renderOverview() {
+    const users    = SDS_DB.getAll(SDS_DB.USERS);
+    const bookings = SDS_DB.getAll(SDS_DB.BOOKINGS);
+    const vehicles = SDS_DB.getAll(SDS_DB.VEHICLES);
+    const payments = SDS_DB.getAll(SDS_DB.PAYMENTS);
+
+    document.getElementById('stats-grid').innerHTML = `
+      <div class="stat-card"><div class="stat-label">Total Users</div><div class="stat-value">${users.length}</div></div>
+      <div class="stat-card green"><div class="stat-label">Active Vehicles</div><div class="stat-value">${vehicles.filter(v => v.status === 'available').length}</div></div>
+      <div class="stat-card amber"><div class="stat-label">Pending Bookings</div><div class="stat-value">${bookings.filter(b => b.status === 'pending').length}</div></div>
+      <div class="stat-card red"><div class="stat-label">Pending Payments</div><div class="stat-value">${payments.filter(p => p.status === 'pending').length}</div></div>
+    `;
+
+    const recent = [...bookings].sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 8);
+    document.getElementById('recent-bookings-table').innerHTML = bookingTableHTML(recent);
+  }
+
+  // ── Users ─────────────────────────────────────────
+  function renderUsers() {
+    const search = (document.getElementById('user-search')?.value || '').toLowerCase();
+    const role   = document.getElementById('user-role-filter')?.value || '';
+    let users    = SDS_DB.getAll(SDS_DB.USERS);
+    if (search) users = users.filter(u => u.name.toLowerCase().includes(search) || u.email.toLowerCase().includes(search));
+    if (role)   users = users.filter(u => u.role === role);
+
+    if (!users.length) { document.getElementById('users-table').innerHTML = '<div class="empty-state"><div class="empty-icon">👤</div>No users found.</div>'; return; }
+    document.getElementById('users-table').innerHTML = `
+      <table>
+        <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Role</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody>
+          ${users.map(u => `
+            <tr>
+              <td>${u.name}</td><td>${u.email}</td><td>${u.phone || '—'}</td>
+              <td><span class="badge badge-info" style="text-transform:capitalize">${u.role}</span></td>
+              <td>${SDS_UI.statusBadge(u.status)}</td>
+              <td class="action-btns">
+                <button class="btn btn-secondary btn-sm" onclick='openUserModal(${u.id})'>Edit</button>
+                <button class="btn btn-danger btn-sm" onclick='deleteUser(${u.id})'>Delete</button>
+              </td>
+            </tr>`).join('')}
+        </tbody>
+      </table>`;
+  }
+
+  function openUserModal(id) {
+    const form = document.getElementById('user-form');
+    form.reset();
+    document.getElementById('user-form-error').textContent = '';
+    if (id) {
+      const u = SDS_DB.getById(SDS_DB.USERS, id);
+      document.getElementById('user-modal-title').textContent = 'Edit User';
+      document.getElementById('user-id').value     = u.id;
+      document.getElementById('user-name').value   = u.name;
+      document.getElementById('user-email').value  = u.email;
+      document.getElementById('user-phone').value  = u.phone || '';
+      document.getElementById('user-role').value   = u.role;
+      document.getElementById('user-status').value = u.status;
+    } else {
+      document.getElementById('user-modal-title').textContent = 'Add User';
+      document.getElementById('user-id').value = '';
+    }
+    openModal('user-modal');
+  }
+
+  document.getElementById('user-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    document.getElementById('user-form-error').textContent = '';
+    const id       = document.getElementById('user-id').value;
+    const name     = document.getElementById('user-name').value.trim();
+    const email    = document.getElementById('user-email').value.trim().toLowerCase();
+    const phone    = document.getElementById('user-phone').value.trim();
+    const role     = document.getElementById('user-role').value;
+    const status   = document.getElementById('user-status').value;
+    const password = document.getElementById('user-password').value;
+
+    if (!name || !email) { document.getElementById('user-form-error').textContent = 'Name and email are required.'; return; }
+
+    const existing = SDS_DB.query(SDS_DB.USERS, u => u.email === email && String(u.id) !== String(id));
+    if (existing.length) { document.getElementById('user-form-error').textContent = 'Email already in use.'; return; }
+
+    if (id) {
+      const updates = { name, email, phone, role, status };
+      if (password) updates.password = password;
+      SDS_DB.update(SDS_DB.USERS, Number(id), updates);
+      SDS_UI.showToast('User updated successfully.');
+    } else {
+      if (!password) { document.getElementById('user-form-error').textContent = 'Password is required for new users.'; return; }
+      SDS_DB.create(SDS_DB.USERS, { name, email, phone, role, status, password });
+      SDS_UI.showToast('User created successfully.');
+    }
+    closeModal('user-modal');
+    renderUsers();
+  });
+
+  function deleteUser(id) {
+    if (!confirm('Delete this user? This cannot be undone.')) return;
+    SDS_DB.delete(SDS_DB.USERS, id);
+    SDS_UI.showToast('User deleted.', 'info');
+    renderUsers();
+  }
+
+  // ── Vehicles ──────────────────────────────────────
+  function renderVehicles() {
+    const vehicles = SDS_DB.getAll(SDS_DB.VEHICLES);
+    if (!vehicles.length) { document.getElementById('vehicles-table').innerHTML = '<div class="empty-state"><div class="empty-icon">🚘</div>No vehicles found.</div>'; return; }
+    document.getElementById('vehicles-table').innerHTML = `
+      <table>
+        <thead><tr><th>Plate</th><th>Model</th><th>Year</th><th>Color</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody>
+          ${vehicles.map(v => `
+            <tr>
+              <td><strong>${v.plate}</strong></td><td>${v.model}</td><td>${v.year}</td><td>${v.color || '—'}</td>
+              <td>${SDS_UI.statusBadge(v.status)}</td>
+              <td class="action-btns">
+                <button class="btn btn-secondary btn-sm" onclick='openVehicleModal(${v.id})'>Edit</button>
+                <button class="btn btn-danger btn-sm" onclick='deleteVehicle(${v.id})'>Delete</button>
+              </td>
+            </tr>`).join('')}
+        </tbody>
+      </table>`;
+  }
+
+  function openVehicleModal(id) {
+    document.getElementById('vehicle-form').reset();
+    document.getElementById('vehicle-form-error').textContent = '';
+    if (id) {
+      const v = SDS_DB.getById(SDS_DB.VEHICLES, id);
+      document.getElementById('vehicle-modal-title').textContent = 'Edit Vehicle';
+      document.getElementById('vehicle-id').value     = v.id;
+      document.getElementById('vehicle-plate').value  = v.plate;
+      document.getElementById('vehicle-model').value  = v.model;
+      document.getElementById('vehicle-year').value   = v.year;
+      document.getElementById('vehicle-color').value  = v.color || '';
+      document.getElementById('vehicle-status').value = v.status;
+    } else {
+      document.getElementById('vehicle-modal-title').textContent = 'Add Vehicle';
+      document.getElementById('vehicle-id').value = '';
+    }
+    openModal('vehicle-modal');
+  }
+
+  document.getElementById('vehicle-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    document.getElementById('vehicle-form-error').textContent = '';
+    const id     = document.getElementById('vehicle-id').value;
+    const plate  = document.getElementById('vehicle-plate').value.trim().toUpperCase();
+    const model  = document.getElementById('vehicle-model').value.trim();
+    const year   = parseInt(document.getElementById('vehicle-year').value, 10) || new Date().getFullYear();
+    const color  = document.getElementById('vehicle-color').value.trim();
+    const status = document.getElementById('vehicle-status').value;
+    if (!plate || !model) { document.getElementById('vehicle-form-error').textContent = 'Plate and model are required.'; return; }
+    if (id) {
+      SDS_DB.update(SDS_DB.VEHICLES, Number(id), { plate, model, year, color, status });
+      SDS_UI.showToast('Vehicle updated.');
+    } else {
+      SDS_DB.create(SDS_DB.VEHICLES, { plate, model, year, color, status });
+      SDS_UI.showToast('Vehicle added.');
+    }
+    closeModal('vehicle-modal');
+    renderVehicles();
+  });
+
+  function deleteVehicle(id) {
+    if (!confirm('Delete this vehicle?')) return;
+    SDS_DB.delete(SDS_DB.VEHICLES, id);
+    SDS_UI.showToast('Vehicle deleted.', 'info');
+    renderVehicles();
+  }
+
+  // ── Bookings ──────────────────────────────────────
+  function bookingTableHTML(bookings) {
+    const users    = SDS_DB.getAll(SDS_DB.USERS);
+    const vehicles = SDS_DB.getAll(SDS_DB.VEHICLES);
+    if (!bookings.length) return '<div class="empty-state"><div class="empty-icon">📅</div>No bookings found.</div>';
+    return `
+      <table>
+        <thead><tr><th>#</th><th>Student</th><th>Instructor</th><th>Vehicle</th><th>Date</th><th>Time</th><th>Status</th><th>Payment</th><th>Actions</th></tr></thead>
+        <tbody>
+          ${bookings.map(b => {
+            const student    = users.find(u => u.id === b.studentId);
+            const instructor = users.find(u => u.id === b.instructorId);
+            const vehicle    = vehicles.find(v => v.id === b.vehicleId);
+            return `<tr>
+              <td>${b.id}</td>
+              <td>${student    ? student.name    : '—'}</td>
+              <td>${instructor ? instructor.name : '—'}</td>
+              <td>${vehicle    ? vehicle.plate   : '—'}</td>
+              <td>${b.date}</td><td>${b.time}</td>
+              <td>${SDS_UI.statusBadge(b.status)}</td>
+              <td>${SDS_UI.statusBadge(b.paymentStatus)}</td>
+              <td><button class="btn btn-secondary btn-sm" onclick='openBookingModal(${b.id})'>Update</button></td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>`;
+  }
+
+  function renderBookings() {
+    const filter = document.getElementById('booking-status-filter')?.value || '';
+    let bookings = SDS_DB.getAll(SDS_DB.BOOKINGS);
+    if (filter) bookings = bookings.filter(b => b.status === filter);
+    document.getElementById('bookings-table').innerHTML = bookingTableHTML(bookings);
+  }
+
+  function openBookingModal(id) {
+    document.getElementById('booking-action-id').value = id;
+    document.getElementById('booking-action-status').value = 'confirmed';
+    document.getElementById('reschedule-fields').style.display = 'none';
+    document.getElementById('booking-action-status').addEventListener('change', function () {
+      document.getElementById('reschedule-fields').style.display = this.value === 'rescheduled' ? '' : 'none';
+    });
+    openModal('booking-modal');
+  }
+
+  function saveBookingAction() {
+    const id     = Number(document.getElementById('booking-action-id').value);
+    const status = document.getElementById('booking-action-status').value;
+    const updates = { status };
+    if (status === 'rescheduled') {
+      updates.date = document.getElementById('booking-new-date').value;
+      updates.time = document.getElementById('booking-new-time').value;
+    }
+    SDS_DB.update(SDS_DB.BOOKINGS, id, updates);
+    SDS_UI.showToast('Booking updated.');
+    closeModal('booking-modal');
+    renderBookings();
+  }
+
+  // ── Payments ──────────────────────────────────────
+  function renderPayments() {
+    const filter   = document.getElementById('payment-status-filter')?.value || '';
+    const users    = SDS_DB.getAll(SDS_DB.USERS);
+    const bookings = SDS_DB.getAll(SDS_DB.BOOKINGS);
+    let payments   = SDS_DB.getAll(SDS_DB.PAYMENTS);
+    if (filter) payments = payments.filter(p => p.status === filter);
+    if (!payments.length) { document.getElementById('payments-table').innerHTML = '<div class="empty-state"><div class="empty-icon">💳</div>No payments found.</div>'; return; }
+    document.getElementById('payments-table').innerHTML = `
+      <table>
+        <thead><tr><th>#</th><th>Student</th><th>Booking</th><th>Amount</th><th>Submitted</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody>
+          ${payments.map(p => {
+            const student = users.find(u => u.id === p.studentId);
+            const booking = bookings.find(b => b.id === p.bookingId);
+            return `<tr>
+              <td>${p.id}</td>
+              <td>${student ? student.name : '—'}</td>
+              <td>${booking ? `#${booking.id} (${booking.date})` : '—'}</td>
+              <td>$${p.amount}</td>
+              <td>${SDS_UI.formatDate(p.submittedDate)}</td>
+              <td>${SDS_UI.statusBadge(p.status)}</td>
+              <td class="action-btns">
+                ${p.status === 'pending' ? `
+                  <button class="btn btn-success btn-sm" onclick='updatePayment(${p.id},"approved")'>Approve</button>
+                  <button class="btn btn-danger btn-sm"  onclick='updatePayment(${p.id},"rejected")'>Reject</button>` : '—'}
+              </td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>`;
+  }
+
+  function updatePayment(id, status) {
+    SDS_DB.update(SDS_DB.PAYMENTS, id, { status });
+    // Also update booking paymentStatus
+    const payment = SDS_DB.getById(SDS_DB.PAYMENTS, id);
+    if (payment) SDS_DB.update(SDS_DB.BOOKINGS, payment.bookingId, { paymentStatus: status === 'approved' ? 'paid' : 'rejected' });
+    SDS_UI.showToast('Payment ' + status + '.', status === 'approved' ? 'success' : 'error');
+    renderPayments();
+  }
+
+  // ── Reports ───────────────────────────────────────
+  function generateReport() {
+    const type  = document.getElementById('report-type').value;
+    const types = { bookings: 'Bookings Summary', payments: 'Payments Summary', users: 'User Roster', vehicles: 'Vehicle Fleet', incidents: 'Incident Log' };
+    let html    = '';
+    if (type === 'bookings')  html = bookingTableHTML(SDS_DB.getAll(SDS_DB.BOOKINGS));
+    if (type === 'payments')  {
+      const ps = SDS_DB.getAll(SDS_DB.PAYMENTS);
+      html = `<p>Total: ${ps.length} | Approved: ${ps.filter(p=>p.status==='approved').length} | Pending: ${ps.filter(p=>p.status==='pending').length}</p>`;
+    }
+    if (type === 'users')     {
+      const us = SDS_DB.getAll(SDS_DB.USERS);
+      html = `<p>Total: ${us.length} | Students: ${us.filter(u=>u.role==='student').length} | Instructors: ${us.filter(u=>u.role==='instructor').length} | Staff: ${us.filter(u=>u.role==='staff').length}</p>`;
+    }
+    if (type === 'vehicles')  {
+      const vs = SDS_DB.getAll(SDS_DB.VEHICLES);
+      html = `<p>Total: ${vs.length} | Available: ${vs.filter(v=>v.status==='available').length} | Maintenance: ${vs.filter(v=>v.status==='maintenance').length}</p>`;
+    }
+    if (type === 'incidents') {
+      const ins = SDS_DB.getAll(SDS_DB.INCIDENTS);
+      html = ins.length ? `<p>Total incidents: ${ins.length} | Open: ${ins.filter(i=>i.status==='open').length}</p>` : '<p>No incidents on record.</p>';
+    }
+    document.getElementById('report-output-title').textContent = types[type];
+    document.getElementById('report-output-date').textContent  = 'Generated: ' + new Date().toLocaleString();
+    document.getElementById('report-output-body').innerHTML    = html;
+    document.getElementById('report-output').style.display     = '';
+
+    SDS_DB.create(SDS_DB.REPORTS, { type, title: types[type], generatedBy: currentUser.id, date: new Date().toISOString() });
+    renderSavedReports();
+  }
+
+  function renderSavedReports() {
+    const reports = [...SDS_DB.getAll(SDS_DB.REPORTS)].sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
+    const users   = SDS_DB.getAll(SDS_DB.USERS);
+    if (!reports.length) { document.getElementById('saved-reports-table').innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div>No reports generated yet.</div>'; return; }
+    document.getElementById('saved-reports-table').innerHTML = `
+      <table>
+        <thead><tr><th>#</th><th>Title</th><th>Generated By</th><th>Date</th></tr></thead>
+        <tbody>
+          ${reports.map(r => {
+            const u = users.find(x => x.id === r.generatedBy);
+            return `<tr><td>${r.id}</td><td>${r.title}</td><td>${u ? u.name : '—'}</td><td>${SDS_UI.formatDate(r.createdAt)}</td></tr>`;
+          }).join('')}
+        </tbody>
+      </table>`;
+  }
+
+  // Initial render
+  renderOverview();
+
+  // Reschedule toggle
+  document.getElementById('booking-action-status').addEventListener('change', function () {
+    document.getElementById('reschedule-fields').style.display = this.value === 'rescheduled' ? '' : 'none';
+  });
+</script>
+</body>
+</html>
