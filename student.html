@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Drive System — Student</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="sds-layout">
+  <!-- Sidebar -->
+  <aside class="sds-sidebar">
+    <div class="sds-sidebar-brand">
+      <h1>🚗 Smart Drive</h1>
+      <span class="role-badge">Student</span>
+    </div>
+    <nav>
+      <a href="#" class="active" data-tab="profile"><span class="nav-icon">👤</span> My Profile</a>
+      <a href="#" data-tab="schedules"><span class="nav-icon">🗓️</span> View Schedules</a>
+      <a href="#" data-tab="book"><span class="nav-icon">➕</span> Book a Lesson</a>
+      <a href="#" data-tab="lessons"><span class="nav-icon">📚</span> My Lessons</a>
+      <a href="#" data-tab="payments"><span class="nav-icon">💳</span> Payments</a>
+      <a href="#" data-tab="progress"><span class="nav-icon">📈</span> My Progress</a>
+    </nav>
+    <div class="sds-sidebar-footer">
+      <div class="user-name"  id="sidebar-name">—</div>
+      <div class="user-email" id="sidebar-email">—</div>
+      <button class="btn-logout" onclick="SDS_AUTH.logout()">Sign Out</button>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <div class="sds-main">
+    <div class="sds-topbar">
+      <h2 id="topbar-title">My Profile</h2>
+      <div class="topbar-actions"><span class="text-muted" id="topbar-date"></span></div>
+    </div>
+
+    <div class="sds-content">
+
+      <!-- ── PROFILE ── -->
+      <section id="tab-profile" class="tab-section">
+        <div class="card" style="max-width:560px;">
+          <div class="card-header">
+            <span class="card-title">Profile Information</span>
+            <button class="btn btn-primary btn-sm" onclick="toggleProfileEdit()">Edit</button>
+          </div>
+          <div id="profile-view"></div>
+          <form id="profile-form" style="display:none" novalidate>
+            <div class="form-group"><label>Full Name</label><input type="text" id="prof-name" class="form-control"></div>
+            <div class="form-group"><label>Email</label><input type="email" id="prof-email" class="form-control"></div>
+            <div class="form-group"><label>Phone</label><input type="tel"  id="prof-phone" class="form-control"></div>
+            <div class="form-group"><label>New Password <span class="text-muted">(leave blank to keep)</span></label><input type="password" id="prof-password" class="form-control"></div>
+            <div class="form-error" id="prof-error"></div>
+            <div style="display:flex;gap:10px;margin-top:12px;">
+              <button type="submit" class="btn btn-primary">Save Changes</button>
+              <button type="button" class="btn btn-secondary" onclick="toggleProfileEdit(false)">Cancel</button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <!-- ── SCHEDULES ── -->
+      <section id="tab-schedules" class="tab-section" style="display:none">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Available Schedules</span>
+          </div>
+          <div class="form-row" style="margin-bottom:16px;max-width:500px;">
+            <div class="form-group mb-0">
+              <label>Select Date</label>
+              <input type="date" id="schedule-date" class="form-control" onchange="renderSchedules()">
+            </div>
+            <div class="form-group mb-0">
+              <label>Filter by Instructor</label>
+              <select id="schedule-instructor" class="form-control" onchange="renderSchedules()">
+                <option value="">All Instructors</option>
+              </select>
+            </div>
+          </div>
+          <div id="schedules-output"></div>
+        </div>
+      </section>
+
+      <!-- ── BOOK LESSON ── -->
+      <section id="tab-book" class="tab-section" style="display:none">
+        <div class="card" style="max-width:600px;">
+          <div class="card-header"><span class="card-title">Book a Driving Lesson</span></div>
+          <form id="book-form" novalidate>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Preferred Date</label>
+                <input type="date" id="book-date" class="form-control" required onchange="loadBookingSlots()">
+              </div>
+              <div class="form-group">
+                <label>Instructor</label>
+                <select id="book-instructor" class="form-control" onchange="loadBookingSlots()">
+                  <option value="">Select Instructor</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Available Time Slots</label>
+              <select id="book-time" class="form-control" required>
+                <option value="">— select date & instructor first —</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Vehicle</label>
+              <select id="book-vehicle" class="form-control" required>
+                <option value="">Select Vehicle</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Notes (optional)</label>
+              <textarea id="book-notes" class="form-control" rows="3" placeholder="Any special requests…"></textarea>
+            </div>
+            <div class="form-error" id="book-error"></div>
+            <button type="submit" class="btn btn-primary">Submit Booking Request</button>
+          </form>
+        </div>
+      </section>
+
+      <!-- ── MY LESSONS ── -->
+      <section id="tab-lessons" class="tab-section" style="display:none">
+        <div class="card">
+          <div class="card-header"><span class="card-title">My Booked Lessons</span></div>
+          <div class="table-wrapper" id="lessons-table"></div>
+        </div>
+      </section>
+
+      <!-- ── PAYMENTS ── -->
+      <section id="tab-payments" class="tab-section" style="display:none">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">My Payments</span>
+            <button class="btn btn-primary btn-sm" onclick="openPaymentModal()">+ Submit Payment</button>
+          </div>
+          <div class="table-wrapper" id="payments-table"></div>
+        </div>
+      </section>
+
+      <!-- ── PROGRESS ── -->
+      <section id="tab-progress" class="tab-section" style="display:none">
+        <div class="card">
+          <div class="card-header"><span class="card-title">Performance &amp; Progress</span></div>
+          <div id="progress-output"></div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<!-- Payment Modal -->
+<div class="modal-backdrop" id="payment-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Submit Payment</span>
+      <button class="modal-close" onclick="closeModal('payment-modal')">&times;</button>
+    </div>
+    <form id="payment-form" novalidate>
+      <div class="form-group">
+        <label>Select Booking</label>
+        <select id="pay-booking" class="form-control" required></select>
+      </div>
+      <div class="form-group">
+        <label>Amount ($)</label>
+        <input type="number" id="pay-amount" class="form-control" value="50" min="1" required>
+      </div>
+      <div class="form-group">
+        <label>Payment Proof (reference/receipt number)</label>
+        <input type="text" id="pay-proof" class="form-control" placeholder="e.g. TXN-20250307-001" required>
+      </div>
+      <div class="form-error" id="pay-error"></div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('payment-modal')">Cancel</button>
+        <button type="submit" class="btn btn-primary">Submit</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="js/db.js"></script>
+<script>
+  const currentUser = SDS_AUTH.requireAuth('student');
+  if (!currentUser) throw new Error('Unauthorized');
+
+  document.getElementById('sidebar-name').textContent  = currentUser.name;
+  document.getElementById('sidebar-email').textContent = currentUser.email;
+  document.getElementById('topbar-date').textContent   = new Date().toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+
+  // Set min date for date pickers to today
+  const today = new Date().toISOString().split('T')[0];
+  ['schedule-date','book-date'].forEach(id => { const el = document.getElementById(id); if (el) { el.min = today; el.value = today; } });
+
+  // ── Navigation ────────────────────────────────────
+  document.querySelectorAll('.sds-sidebar nav a[data-tab]').forEach(link => {
+    link.addEventListener('click', e => {
+      e.preventDefault();
+      const tab = link.dataset.tab;
+      document.querySelectorAll('.sds-sidebar nav a').forEach(a => a.classList.remove('active'));
+      link.classList.add('active');
+      document.querySelectorAll('.tab-section').forEach(s => s.style.display = 'none');
+      document.getElementById('tab-' + tab).style.display = '';
+      document.getElementById('topbar-title').textContent = link.textContent.trim();
+      refreshTab(tab);
+    });
+  });
+
+  function refreshTab(tab) {
+    if (tab === 'profile')   renderProfile();
+    if (tab === 'schedules') { populateInstructorFilters(); renderSchedules(); }
+    if (tab === 'book')      { populateBookForm(); }
+    if (tab === 'lessons')   renderLessons();
+    if (tab === 'payments')  renderPayments();
+    if (tab === 'progress')  renderProgress();
+  }
+
+  function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+  function openModal(id)  { document.getElementById(id).classList.add('open'); }
+
+  // ── Profile ───────────────────────────────────────
+  function renderProfile() {
+    const u = SDS_AUTH.refreshCurrentUser();
+    document.getElementById('profile-view').innerHTML = `
+      <div class="info-grid">
+        <div class="info-item"><div class="info-label">Full Name</div><div class="info-value">${u.name}</div></div>
+        <div class="info-item"><div class="info-label">Email</div><div class="info-value">${u.email}</div></div>
+        <div class="info-item"><div class="info-label">Phone</div><div class="info-value">${u.phone || '—'}</div></div>
+        <div class="info-item"><div class="info-label">Role</div><div class="info-value" style="text-transform:capitalize">${u.role}</div></div>
+        <div class="info-item"><div class="info-label">Status</div><div class="info-value">${SDS_UI.statusBadge(u.status)}</div></div>
+        <div class="info-item"><div class="info-label">Member Since</div><div class="info-value">${SDS_UI.formatDate(u.createdAt)}</div></div>
+      </div>`;
+  }
+
+  function toggleProfileEdit(show) {
+    const view = document.getElementById('profile-view');
+    const form = document.getElementById('profile-form');
+    if (show === false) { view.style.display = ''; form.style.display = 'none'; return; }
+    const u = SDS_AUTH.getCurrentUser();
+    document.getElementById('prof-name').value  = u.name;
+    document.getElementById('prof-email').value = u.email;
+    document.getElementById('prof-phone').value = u.phone || '';
+    view.style.display = 'none';
+    form.style.display = '';
+  }
+
+  document.getElementById('profile-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    document.getElementById('prof-error').textContent = '';
+    const name     = document.getElementById('prof-name').value.trim();
+    const email    = document.getElementById('prof-email').value.trim().toLowerCase();
+    const phone    = document.getElementById('prof-phone').value.trim();
+    const password = document.getElementById('prof-password').value;
+    if (!name || !email) { document.getElementById('prof-error').textContent = 'Name and email are required.'; return; }
+    const updates = { name, email, phone };
+    if (password) updates.password = password;
+    SDS_DB.update(SDS_DB.USERS, currentUser.id, updates);
+    SDS_AUTH.refreshCurrentUser();
+    toggleProfileEdit(false);
+    renderProfile();
+    SDS_UI.showToast('Profile updated.');
+  });
+
+  renderProfile();
+
+  // ── Schedules ─────────────────────────────────────
+  function populateInstructorFilters() {
+    const instructors = SDS_DB.query(SDS_DB.USERS, u => u.role === 'instructor');
+    const sel = document.getElementById('schedule-instructor');
+    sel.innerHTML = '<option value="">All Instructors</option>' + instructors.map(i => `<option value="${i.id}">${i.name}</option>`).join('');
+  }
+
+  function renderSchedules() {
+    const date       = document.getElementById('schedule-date').value;
+    const instrId    = parseInt(document.getElementById('schedule-instructor').value) || 0;
+    const schedules  = SDS_DB.query(SDS_DB.INSTRUCTOR_SCHEDULES, s => s.date === date && (!instrId || s.instructorId === instrId));
+    const instructors = SDS_DB.getAll(SDS_DB.USERS);
+    const vehicles   = SDS_DB.query(SDS_DB.VEHICLES, v => v.status === 'available');
+
+    if (!schedules.length) {
+      document.getElementById('schedules-output').innerHTML = '<div class="empty-state"><div class="empty-icon">📅</div>No schedules available for this date.</div>';
+      return;
+    }
+    document.getElementById('schedules-output').innerHTML = schedules.map(s => {
+      const instr = instructors.find(u => u.id === s.instructorId);
+      return `
+        <div class="card" style="margin-bottom:14px;">
+          <div class="card-header">
+            <span class="card-title">👨‍🏫 ${instr ? instr.name : 'Instructor ' + s.instructorId}</span>
+            <span class="text-muted">${date}</span>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
+            ${s.timeSlots.map(t => `<span class="badge badge-success">${t}</span>`).join('')}
+          </div>
+          <div class="text-muted" style="font-size:12px;">
+            Available vehicles: ${vehicles.map(v => v.plate + ' (' + v.model + ')').join(', ') || 'None'}
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  populateInstructorFilters();
+  renderSchedules();
+
+  // ── Book Lesson ───────────────────────────────────
+  function populateBookForm() {
+    const instructors = SDS_DB.query(SDS_DB.USERS, u => u.role === 'instructor' && u.status === 'active');
+    const vehicles    = SDS_DB.query(SDS_DB.VEHICLES, v => v.status === 'available');
+    document.getElementById('book-instructor').innerHTML =
+      '<option value="">Select Instructor</option>' + instructors.map(i => `<option value="${i.id}">${i.name}</option>`).join('');
+    document.getElementById('book-vehicle').innerHTML =
+      '<option value="">Select Vehicle</option>' + vehicles.map(v => `<option value="${v.id}">${v.plate} — ${v.model}</option>`).join('');
+  }
+
+  function loadBookingSlots() {
+    const date    = document.getElementById('book-date').value;
+    const instrId = parseInt(document.getElementById('book-instructor').value) || 0;
+    if (!date || !instrId) return;
+    const schedule = SDS_DB.query(SDS_DB.INSTRUCTOR_SCHEDULES, s => s.date === date && s.instructorId === instrId)[0];
+    const slots    = schedule ? schedule.timeSlots : [];
+    document.getElementById('book-time').innerHTML = slots.length
+      ? slots.map(t => `<option value="${t}">${t}</option>`).join('')
+      : '<option value="">No slots available for this date</option>';
+  }
+
+  document.getElementById('book-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    document.getElementById('book-error').textContent = '';
+    const date    = document.getElementById('book-date').value;
+    const instrId = parseInt(document.getElementById('book-instructor').value);
+    const time    = document.getElementById('book-time').value;
+    const vehId   = parseInt(document.getElementById('book-vehicle').value);
+    const notes   = document.getElementById('book-notes').value.trim();
+    if (!date || !instrId || !time || !vehId) { document.getElementById('book-error').textContent = 'Please fill in all required fields.'; return; }
+    SDS_DB.create(SDS_DB.BOOKINGS, { studentId: currentUser.id, instructorId: instrId, vehicleId: vehId, date, time, status: 'pending', paymentStatus: 'pending', notes });
+    SDS_UI.showToast('Booking request submitted!');
+    document.getElementById('book-form').reset();
+    document.getElementById('book-time').innerHTML = '<option value="">— select date & instructor first —</option>';
+  });
+
+  populateBookForm();
+
+  // ── My Lessons ────────────────────────────────────
+  function renderLessons() {
+    const bookings    = SDS_DB.query(SDS_DB.BOOKINGS, b => b.studentId === currentUser.id);
+    const users       = SDS_DB.getAll(SDS_DB.USERS);
+    const vehicles    = SDS_DB.getAll(SDS_DB.VEHICLES);
+    if (!bookings.length) { document.getElementById('lessons-table').innerHTML = '<div class="empty-state"><div class="empty-icon">📚</div>No lessons booked yet.</div>'; return; }
+    document.getElementById('lessons-table').innerHTML = `
+      <table>
+        <thead><tr><th>#</th><th>Date</th><th>Time</th><th>Instructor</th><th>Vehicle</th><th>Status</th><th>Payment</th></tr></thead>
+        <tbody>
+          ${bookings.map(b => {
+            const instr   = users.find(u => u.id === b.instructorId);
+            const vehicle = vehicles.find(v => v.id === b.vehicleId);
+            return `<tr>
+              <td>${b.id}</td><td>${b.date}</td><td>${b.time}</td>
+              <td>${instr   ? instr.name   : '—'}</td>
+              <td>${vehicle ? vehicle.plate : '—'}</td>
+              <td>${SDS_UI.statusBadge(b.status)}</td>
+              <td>${SDS_UI.statusBadge(b.paymentStatus)}</td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>`;
+  }
+
+  // ── Payments ──────────────────────────────────────
+  function renderPayments() {
+    const payments = SDS_DB.query(SDS_DB.PAYMENTS, p => p.studentId === currentUser.id);
+    const bookings = SDS_DB.getAll(SDS_DB.BOOKINGS);
+    if (!payments.length) { document.getElementById('payments-table').innerHTML = '<div class="empty-state"><div class="empty-icon">💳</div>No payment records yet.</div>'; return; }
+    document.getElementById('payments-table').innerHTML = `
+      <table>
+        <thead><tr><th>#</th><th>Booking</th><th>Amount</th><th>Proof Ref</th><th>Submitted</th><th>Status</th></tr></thead>
+        <tbody>
+          ${payments.map(p => {
+            const b = bookings.find(x => x.id === p.bookingId);
+            return `<tr>
+              <td>${p.id}</td>
+              <td>${b ? '#' + b.id + ' (' + b.date + ')' : '—'}</td>
+              <td>$${p.amount}</td>
+              <td>${p.proofFile || '—'}</td>
+              <td>${SDS_UI.formatDate(p.submittedDate)}</td>
+              <td>${SDS_UI.statusBadge(p.status)}</td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>`;
+  }
+
+  function openPaymentModal() {
+    const unpaid = SDS_DB.query(SDS_DB.BOOKINGS, b => b.studentId === currentUser.id && b.paymentStatus !== 'paid');
+    const sel = document.getElementById('pay-booking');
+    sel.innerHTML = unpaid.length
+      ? unpaid.map(b => `<option value="${b.id}">#${b.id} — ${b.date} ${b.time}</option>`).join('')
+      : '<option value="">No unpaid bookings</option>';
+    document.getElementById('pay-error').textContent = '';
+    openModal('payment-modal');
+  }
+
+  document.getElementById('payment-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    document.getElementById('pay-error').textContent = '';
+    const bookingId = parseInt(document.getElementById('pay-booking').value);
+    const amount    = parseFloat(document.getElementById('pay-amount').value);
+    const proof     = document.getElementById('pay-proof').value.trim();
+    if (!bookingId) { document.getElementById('pay-error').textContent = 'Select a booking.'; return; }
+    if (!proof)     { document.getElementById('pay-error').textContent = 'Proof reference is required.'; return; }
+    SDS_DB.create(SDS_DB.PAYMENTS, { bookingId, studentId: currentUser.id, amount, proofFile: proof, status: 'pending', submittedDate: new Date().toISOString() });
+    SDS_DB.update(SDS_DB.BOOKINGS, bookingId, { paymentStatus: 'pending' });
+    SDS_UI.showToast('Payment submitted for review.');
+    closeModal('payment-modal');
+    renderPayments();
+  });
+
+  // ── Progress ──────────────────────────────────────
+  function renderProgress() {
+    const records = SDS_DB.query(SDS_DB.PROGRESS_RECORDS, r => r.studentId === currentUser.id);
+    const users   = SDS_DB.getAll(SDS_DB.USERS);
+    if (!records.length) { document.getElementById('progress-output').innerHTML = '<div class="empty-state"><div class="empty-icon">📈</div>No progress records yet.</div>'; return; }
+    document.getElementById('progress-output').innerHTML = `
+      <table>
+        <thead><tr><th>Date</th><th>Instructor</th><th>Performance</th><th>Notes</th></tr></thead>
+        <tbody>
+          ${records.map(r => {
+            const instr = users.find(u => u.id === r.instructorId);
+            return `<tr>
+              <td>${r.date}</td>
+              <td>${instr ? instr.name : '—'}</td>
+              <td><span class="badge badge-info">${r.performance}</span></td>
+              <td>${r.notes || '—'}</td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>`;
+  }
+</script>
+</body>
+</html>
